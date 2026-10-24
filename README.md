@@ -4,7 +4,7 @@ Console-based Helpdesk system in Java that logs support tickets, assigns agents,
 tracks status/priority and prints dashboards. Built for
 **23CSR303 Object Oriented Programming with Java - Assignment II (Question 13)**.
 
-**Author:** SIVARATHISH D (717825F150) - II IT, Sem III, Section A, Karpagam College of Engineering
+**Author:** VEERAVIZHAL S - 717825F357 - II IT, Sem III, Section C, Karpagam College of Engineering
 
 ## Classes (package `com.helpdesk`)
 
