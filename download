@@ -1,0 +1,6 @@
+bin/
+out/
+*.class
+.settings/
+.idea/
+*.iml

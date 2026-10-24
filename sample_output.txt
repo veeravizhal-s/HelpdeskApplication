@@ -1,0 +1,324 @@
+================================================================================
+  HELPDESK SYSTEM - 23CSR303 OOP WITH JAVA - ASSIGNMENT 2
+  Log ticket -> Assign agent -> Track status -> Report
+================================================================================
+
+================================================================================
+STEP 1: REGISTER USERS AND CATEGORIES
+================================================================================
+Company : Chennai Tech Solutions Pvt Ltd
+  Role      ID    Name           Email
+  Customer  C101  Anita Rao      anita.rao@gmail.com
+            -> Raises tickets; no workload (limit 0)
+  Customer  C102  Vikram Singh   vikram.singh@gmail.com
+            -> Raises tickets; no workload (limit 0)
+  Customer  C103  Sneha Pillai   sneha.pillai@gmail.com
+            -> Raises tickets; no workload (limit 0)
+  Agent     A201  Ravi Kumar     ravi.kumar@helpdesk.in
+            -> Team: Network | Level: Senior | Workload limit: 4
+  Agent     A202  Divya Menon    divya.menon@helpdesk.in
+            -> Team: Billing | Level: Senior | Workload limit: 2
+  Agent     A203  Arjun Das      arjun.das@helpdesk.in
+            -> Team: Software | Level: Junior | Workload limit: 1
+Registered 6 users (3 customers, 3 agents).
+
+--- Categories, SLA hours and escalation rules
+  C00  General   base SLA  48 h  (CRIT 12 h, HIGH 24 h, MED 48 h, LOW 96 h)
+  C01  Network   base SLA   8 h  (CRIT 2 h, HIGH 4 h, MED 8 h, LOW 16 h)
+         escalate HIGH: Network Team Lead after 2 h
+         escalate CRITICAL: Network Team Lead, immediately
+  C02  Billing   base SLA  24 h  (CRIT 6 h, HIGH 12 h, MED 24 h, LOW 48 h)
+         escalate HIGH: Finance Manager after 6 h
+  C03  Software  base SLA  12 h  (CRIT 3 h, HIGH 6 h, MED 12 h, LOW 24 h)
+         escalate HIGH: Senior Developer after 3 h
+         escalate CRITICAL: Engineering Head, immediately
+
+================================================================================
+STEP 2: OPEN TICKETS (OVERLOADED openTicket() METHODS)
+================================================================================
+
+--- Overload 1: openTicket(customer, subject, desc, priority)
+[OPENED] TCK-001 | LOW | General | NEW | Anita Rao | Ticket
+         Attachment: none | SLA 96 h
+[OPENED] TCK-002 | LOW | General | NEW | Vikram Singh | Ticket
+         Attachment: none | SLA 96 h
+
+--- Overload 2: openTicket(..., categoryId)
+[OPENED] TCK-003 | HIGH | Network | NEW | Anita Rao | UrgentTicket
+         Attachment: none | SLA 4 h
+[OPENED] TCK-004 | MEDIUM | Network | NEW | Vikram Singh | Ticket
+         Attachment: none | SLA 8 h
+[OPENED] TCK-005 | LOW | Billing | NEW | Sneha Pillai | Ticket
+         Attachment: none | SLA 48 h
+
+--- Overload 3: openTicket(..., categoryId, attachment)
+[OPENED] TCK-006 | MEDIUM | Billing | NEW | Vikram Singh | Ticket
+         Attachment: invoice_scan.png | SLA 24 h
+[OPENED] TCK-007 | CRITICAL | Software | NEW | Sneha Pillai | UrgentTicket
+         Attachment: crash_log.txt | SLA 3 h
+
+Total tickets opened: 7
+
+================================================================================
+STEP 3: ASSIGN AND REASSIGN AGENTS (WORKLOAD AND LEVEL RULES)
+================================================================================
+> assign TCK-003 to Ravi Kumar (Agent)
+  [ASSIGNED] TCK-003 -> Ravi Kumar (1/4 active).
+> assign TCK-007 to Arjun Das (Agent)
+  [DENIED] Level rule: Junior agents cannot take CRITICAL tickets. TCK-007 needs
+             a SENIOR agent.
+> assign TCK-007 to Ravi Kumar (Agent)
+  [ASSIGNED] TCK-007 -> Ravi Kumar (2/4 active).
+> assign TCK-006 to Divya Menon (Agent)
+  [ASSIGNED] TCK-006 -> Divya Menon (1/2 active).
+> assign TCK-001 to Arjun Das (Agent)
+  [ASSIGNED] TCK-001 -> Arjun Das (1/1 active).
+> assign TCK-004 to Arjun Das (Agent)
+  [DENIED] Workload limit: Arjun Das already holds 1 of 1 active tickets.
+> assign TCK-004 to Divya Menon (Agent)
+  [ASSIGNED] TCK-004 -> Divya Menon (2/2 active).
+> assign TCK-005 to Divya Menon (Agent)
+  [DENIED] Workload limit: Divya Menon already holds 2 of 2 active tickets.
+> assign TCK-005 to Ravi Kumar (Agent)
+  [ASSIGNED] TCK-005 -> Ravi Kumar (3/4 active).
+> assign TCK-002 to Anita Rao (Customer)
+  [DENIED] Anita Rao (Customer) cannot be assigned tickets.
+
+--- Reassignment
+> reassign TCK-001 to Ravi Kumar
+  [REASSIGNED] TCK-001: Arjun Das -> Ravi Kumar.
+> reassign TCK-001 to Arjun Das
+  [REASSIGNED] TCK-001: Ravi Kumar -> Arjun Das.
+> reassign TCK-002 to Arjun Das
+  [DENIED] TCK-002 has no current assignee; use assignAgent() first.
+> reassign TCK-005 to Arjun Das
+  [DENIED] Workload limit: Arjun Das already holds 1 of 1 active tickets.
+
+================================================================================
+STEP 4: CHANGE PRIORITY
+================================================================================
+> TCK-001 (keyboard) raised from LOW to HIGH
+  [PRIORITY] TCK-001: LOW -> HIGH (SLA now 24 h).
+  Object type is now: UrgentTicket
+> TCK-002 (toner) raised from LOW to MEDIUM
+  [PRIORITY] TCK-002: LOW -> MEDIUM (SLA now 48 h).
+  Object type stays : Ticket
+
+================================================================================
+STEP 5: TICKET LIFECYCLE: NEW > OPEN > PENDING > RESOLVED > CLOSED
+================================================================================
+
+--- Illegal moves (must be blocked)
+  [BLOCKED] TCK-002 NEW -> OPEN with no assignee
+            -> Ticket TCK-002 must be assigned to an agent before it can move to
+               OPEN.
+  [BLOCKED] TCK-003 NEW -> RESOLVED (skipping steps)
+            -> Invalid transition for TCK-003: NEW -> RESOLVED is not allowed.
+  [BLOCKED] TCK-003 NEW -> CLOSED (skipping steps)
+            -> Invalid transition for TCK-003: NEW -> CLOSED is not allowed.
+
+--- TCK-003 VPN issue: full lifecycle
+  [STATUS] TCK-003: NEW -> OPEN at 24-Oct 10:20.
+  [STATUS] TCK-003: OPEN -> PENDING at 24-Oct 10:50.
+  [STATUS] TCK-003: PENDING -> RESOLVED at 24-Oct 14:50.
+  [STATUS] TCK-003: RESOLVED -> CLOSED at 24-Oct 15:05.
+
+--- Other tickets move part of the way
+  [STATUS] TCK-007: NEW -> OPEN at 24-Oct 15:05.
+  [STATUS] TCK-004: NEW -> OPEN at 24-Oct 15:05.
+  [STATUS] TCK-004: OPEN -> PENDING at 24-Oct 15:05.
+  [STATUS] TCK-006: NEW -> OPEN at 24-Oct 15:05.
+  [STATUS] TCK-006: OPEN -> RESOLVED at 24-Oct 15:05.
+  [STATUS] TCK-001: NEW -> OPEN at 24-Oct 15:05.
+  [STATUS] TCK-005: NEW -> OPEN at 24-Oct 15:05.
+
+--- Moves after CLOSED (must be blocked)
+  [BLOCKED] TCK-003 CLOSED -> OPEN (reopen)
+            -> Invalid transition for TCK-003: CLOSED -> OPEN is not allowed.
+  [BLOCKED] TCK-003 priority change after CLOSED
+            -> Priority of ticket TCK-003 cannot be changed because it is
+               CLOSED.
+
+================================================================================
+STEP 6: DASHBOARDS
+================================================================================
+SLA sweep at 24-Oct 19:50: 2 new breach(es) found.
+
+--- Dashboard 1: tickets by agent
+Clock: 24-Oct 19:50
+
+  Ravi Kumar [Senior, Network] active 2/4, resolved 1, SLA breaches 2
+    TCK-003  HIGH      CLOSED    Network   Ravi Kumar   VPN not connecting  (!)
+    TCK-005  LOW       OPEN      Billing   Ravi Kumar   Refund status enquiry
+    TCK-007  CRITICAL  OPEN      Software  Ravi Kumar   App crashes on login  (!)
+
+  Divya Menon [Senior, Billing] active 1/2, resolved 1, SLA breaches 1
+    TCK-004  MEDIUM    PENDING   Network   Divya Menon  Wi-Fi drops in meeting ~
+    TCK-006  MEDIUM    RESOLVED  Billing   Divya Menon  Invoice charged twice
+
+  Arjun Das [Junior, Software] active 1/1, resolved 0, SLA breaches 0
+    TCK-001  HIGH      OPEN      General   Arjun Das    Request for new keyboard  (!)
+
+  Unassigned tickets: 1
+    TCK-002  MEDIUM    NEW       General   -            Printer toner replaceme~
+
+--- Dashboard 2: tickets by category
+  Category  Tickets  Open  Resolved Breached
+  General         2     2         0        0
+  Network         2     1         1        2
+  Billing         2     1         1        0
+  Software        1     1         0        1
+  TOTAL           7
+
+--- Dashboard 3: SLA breaches
+  (SLA hours depend on category and priority; elapsed = hours to resolve,
+   or hours so far if still unresolved)
+  ID       Category  Priority    SLA  Elapsed  Status    Result
+  TCK-001  General   HIGH        24h    10.8h  OPEN      within SLA
+  TCK-002  General   MEDIUM      48h    10.7h  NEW       within SLA
+  TCK-003  Network   HIGH         4h     5.5h  CLOSED    BREACHED
+  TCK-004  Network   MEDIUM       8h    10.3h  PENDING   BREACHED
+  TCK-005  Billing   LOW         48h    10.2h  OPEN      within SLA
+  TCK-006  Billing   MEDIUM      24h     5.3h  RESOLVED  within SLA
+  TCK-007  Software  CRITICAL     3h     9.8h  OPEN      BREACHED
+  Total SLA breaches: 3
+
+--- listByPriority(): highest priority first
+  All tickets (7)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-007  CRITICAL  OPEN      Software  Ravi Kumar   App crashes on login  (!)
+    TCK-001  HIGH      OPEN      General   Arjun Das    Request for new keyboard  (!)
+    TCK-003  HIGH      CLOSED    Network   Ravi Kumar   VPN not connecting  (!)
+    TCK-002  MEDIUM    NEW       General   -            Printer toner replaceme~
+    TCK-004  MEDIUM    PENDING   Network   Divya Menon  Wi-Fi drops in meeting ~
+    TCK-006  MEDIUM    RESOLVED  Billing   Divya Menon  Invoice charged twice
+    TCK-005  LOW       OPEN      Billing   Ravi Kumar   Refund status enquiry
+  Only CRITICAL/HIGH (3)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-007  CRITICAL  OPEN      Software  Ravi Kumar   App crashes on login  (!)
+    TCK-001  HIGH      OPEN      General   Arjun Das    Request for new keyboard  (!)
+    TCK-003  HIGH      CLOSED    Network   Ravi Kumar   VPN not connecting  (!)
+
+--- listByStatus()
+  Status NEW (1)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-002  MEDIUM    NEW       General   -            Printer toner replaceme~
+  Status OPEN (3)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-001  HIGH      OPEN      General   Arjun Das    Request for new keyboard  (!)
+    TCK-005  LOW       OPEN      Billing   Ravi Kumar   Refund status enquiry
+    TCK-007  CRITICAL  OPEN      Software  Ravi Kumar   App crashes on login  (!)
+  Status PENDING (1)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-004  MEDIUM    PENDING   Network   Divya Menon  Wi-Fi drops in meeting ~
+  Status RESOLVED (1)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-006  MEDIUM    RESOLVED  Billing   Divya Menon  Invoice charged twice
+  Status CLOSED (1)
+    ID       Priority  Status    Category  Assignee     Subject
+    TCK-003  HIGH      CLOSED    Network   Ravi Kumar   VPN not connecting  (!)
+
+================================================================================
+STEP 7: OOP CONCEPT DEMONSTRATIONS
+================================================================================
+
+--- 1. Inheritance: Agent extends User
+  Ravi is an Agent: true
+  Ravi is a User  : true
+  Inherited getName()  : Ravi Kumar
+  Inherited getEmail() : ravi.kumar@helpdesk.in
+  Overridden getWorkloadLimit(): 4
+
+--- 2. Overriding: Ticket.display() vs UrgentTicket.display()
+> TCK-002 is a plain Ticket (MEDIUM, NEW):
+  Ticket ID   : TCK-002
+  Subject     : Printer toner replacement
+  Customer    : Vikram Singh (C102)
+  Category    : General
+  Priority    : MEDIUM
+  Status      : NEW (Waiting to be assigned and opened)
+  Assignee    : unassigned
+  Attachment  : none
+> TCK-007 is an UrgentTicket (CRITICAL, OPEN):
+  *** URGENT CRITICAL TICKET - SLA 3 h, due 24-Oct 13:00 ***
+  Ticket ID   : TCK-007
+  Subject     : App crashes on login
+  Customer    : Sneha Pillai (C103)
+  Category    : Software
+  Priority    : CRITICAL
+  Status      : OPEN (URGENT - Being worked on by the agent)
+  Assignee    : Ravi Kumar
+  Attachment  : crash_log.txt
+  Escalation  : Engineering Head, immediately
+
+--- 3. Polymorphism: User references, different behaviour
+  Who can be assigned TCK-007 [CRITICAL, OPEN]?
+  Customer  Anita Rao     -> NO. Anita Rao (Customer) cannot be assigned
+                              tickets.
+  Customer  Vikram Singh  -> NO. Vikram Singh (Customer) cannot be assigned
+                              tickets.
+  Customer  Sneha Pillai  -> NO. Sneha Pillai (Customer) cannot be assigned
+                              tickets.
+  Agent     Ravi Kumar    -> NO. TCK-007 is already assigned to Ravi Kumar.
+  Agent     Divya Menon   -> YES
+  Agent     Arjun Das     -> NO. Workload limit: Arjun Das already holds 1 of 1
+                              active tickets.
+
+--- 4. Overloading: same method name, different parameters
+  listByPriority()         -> 7 tickets (all)
+  listByPriority(HIGH)     -> 2 ticket(s)
+  listByPriority(LOW)      -> 1 ticket(s)
+  (openTicket() overloads were shown in the open-ticket step)
+
+--- 5. Encapsulation: status and SLA counters are guarded
+  Ticket has no setStatus(); changeStatus() enforces the workflow.
+  Agent has no setters for resolvedCount / slaBreaches.
+  [BLOCKED] setSubject() on CLOSED TCK-003
+            -> Ticket TCK-003 is CLOSED; its subject can no longer be edited.
+  [BLOCKED] Agent with workload limit 0
+            -> Workload limit must be a positive number.
+  Resolved/SLA counters are read-only: Ravi resolved 1, SLA breaches 2
+
+================================================================================
+STEP 8: VALIDATION TESTS (INVALID INPUT MUST BE BLOCKED)
+================================================================================
+  [BLOCKED] Blank subject
+            -> Subject must not be blank.
+  [BLOCKED] Null priority
+            -> Priority must not be null.
+  [BLOCKED] Unknown category C99
+            -> No category found with ID C99.
+  [BLOCKED] Agent raising a ticket
+            -> Only a registered CUSTOMER can raise a ticket.
+  [BLOCKED] Unknown ticket TCK-999
+            -> No ticket found with ID TCK-999.
+  [BLOCKED] Duplicate user ID C101
+            -> Duplicate user ID: C101
+  [BLOCKED] Invalid email
+            -> Invalid email address: not-an-email
+  [BLOCKED] Category with SLA 0 hours
+            -> SLA hours must be a positive number.
+
+Tickets stored after all invalid attempts: 7 (unchanged)
+
+================================================================================
+STEP 9: AUTOMATIC SELF-CHECKS
+================================================================================
+  [PASS] 7 tickets stored; none added by invalid attempts
+  [PASS] 6 users created, 3 of them agents
+  [PASS] static counters match the 7 valid tickets
+  [PASS] TCK-003 completed NEW > OPEN > PENDING > RESOLVED > CLOSED
+  [PASS] unassigned TCK-002 stayed NEW
+  [PASS] TCK-001 became an UrgentTicket after priority raise
+  [PASS] TCK-002 (MEDIUM) stayed a plain Ticket
+  [PASS] workloads: Arjun 1, Divya 1
+  [PASS] workload: Ravi 2 (TCK-003 resolved, so it no longer counts)
+  [PASS] 3 SLA breaches counted (TCK-003, TCK-004, TCK-007)
+  [PASS] status counts: NEW 1, OPEN 3, PENDING 1, RESOLVED 1, CLOSED 1
+  [PASS] listByPriority() puts CRITICAL first
+
+Self-checks passed: 12 / 12
+
+--------------------------------------------------------------------------------
+Program finished. All steps ran with built-in sample data.
+--------------------------------------------------------------------------------
